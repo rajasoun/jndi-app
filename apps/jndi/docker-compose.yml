@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  jndi:
+    build: ../jndi/server
+    container_name: jndi
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.tcp.routers.jndi.rule=HostSNI(`jndi.${BASE_DOMAIN}`)"
+      - "traefik.tcp.routers.jndi.tls=true"
+      - "traefik.tcp.routers.jndi.tls.certresolver=sslbot"
+      - "traefik.tcp.routers.jndi.entrypoints=jndi,jndi-web"
+
+    env_file:
+      - ${PWD}/config/ssl

@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  router:
+    image: "traefik:latest"
+    container_name: "router"
+    command:
+      - "--log.level=DEBUG"
+      - "--log.filePath=/logs/traefik.log"
+      - "--accesslog=true"
+      - "--accesslog.filepath=/logs/access.log"
+      - "--accesslog.bufferingsize=100"
+      - "--api=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.jndi.address=:1389"
+      - "--entrypoints.jndi-web.address=:8888"
+      - "--certificatesresolvers.sslbot.acme.dnschallenge=true"
+      - "--certificatesresolvers.sslbot.acme.dnschallenge.provider=route53"
+      - "--certificatesresolvers.sslbot.acme.email=${EMAIL}"
+      - "--certificatesresolvers.sslbot.acme.storage=/letsencrypt/acme.json"
+      - "--api.insecure=true"
+
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+      - "8080"
+
+    volumes:
+      - "./letsencrypt:/letsencrypt"
+      - "./logs:/logs"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+    labels:
+      ### Catchall :  Global HTTP -> HTTPS upgrade 
+      - traefik.http.routers.http_catchall.rule=HostRegexp(`{any:.+}`)
+      - traefik.http.routers.http_catchall.entrypoints=web
+      - traefik.http.routers.http_catchall.middlewares=https_redirect
+      - traefik.http.middlewares.https_redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.https_redirect.redirectscheme.permanent=true
+      #### Dashboard  HTTPS support
+      - "traefik.enable=true"
+      - "traefik.http.routers.router.rule=Host(`jndi.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.router.service=api@internal"
+      - "traefik.http.routers.router.entrypoints=websecure"
+      - "traefik.http.routers.router.tls.certresolver=sslbot"
+      - "traefik.http.services.router.loadbalancer.server.port=8080"
+      - "traefik.http.services.router.loadbalancer.passhostheader=true"
+
+    env_file:
+      - ${PWD}/config/ssl
+
+
+
+      
