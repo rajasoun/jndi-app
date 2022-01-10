@@ -13,7 +13,7 @@ WHOAMI=" -f apps/whoami/docker-compose.yml"
   JNDI=" -f apps/jndi/docker-compose.yml"
 
 COMPOSE_FILES="$ROUTER $JNDI $WHOAMI"
-services=(jndi whoami)
+services=(dashboard whoami)
 export services BASE_DIR
 
 function help(){

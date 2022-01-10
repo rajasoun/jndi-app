@@ -26,6 +26,8 @@ services:
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
+      - "0.0.0.0:1389:1389"
+      - "0.0.0.0:8888:8888"
       - "8080"
 
     volumes:
@@ -42,7 +44,7 @@ services:
       - traefik.http.middlewares.https_redirect.redirectscheme.permanent=true
       #### Dashboard  HTTPS support
       - "traefik.enable=true"
-      - "traefik.http.routers.router.rule=Host(`jndi.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.router.rule=Host(`dashboard.${BASE_DOMAIN}`)"
       - "traefik.http.routers.router.service=api@internal"
       - "traefik.http.routers.router.entrypoints=websecure"
       - "traefik.http.routers.router.tls.certresolver=sslbot"
@@ -51,7 +53,3 @@ services:
 
     env_file:
       - ${PWD}/config/ssl
-
-
-
-      
